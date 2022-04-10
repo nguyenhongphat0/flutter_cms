@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_cms/envs/env.dart';
 import 'package:flutter_cms/utils/messages.dart';
 import 'package:pkce/pkce.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -25,15 +26,14 @@ class _LoginPageState extends State<LoginPage> {
     if (widget.code != null) {
       final prefs = await SharedPreferences.getInstance();
       final verifier = prefs.getString("verifier");
-      print('Checking auth...' + widget.code.toString());
       final response = await http.post(
           Uri.parse("https://oauth.zaloapp.com/v4/access_token"),
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
-            'secret_key': appSecret
+            'secret_key': Environment().config.appSecret
           },
           body: {
-            'app_id': appId,
+            'app_id': Environment().config.appId,
             'code': widget.code,
             'grant_type': 'authorization_code',
             'code_verifier': verifier,
@@ -65,10 +65,6 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  static const appId = "2682438414949403758";
-  static const appSecret = "O7UWzIVWMuM3m82XgHtI";
-  static const redirectUrl = "https://donghophattai.com/tunnel.php";
-
   Future<void> login(BuildContext context) async {
     final pkcePair = PkcePair.generate(length: 43);
     final prefs = await SharedPreferences.getInstance();
@@ -77,6 +73,8 @@ class _LoginPageState extends State<LoginPage> {
     final state = Uri.encodeFull(jsonEncode({
       "origin": origin.toString().replaceAll('#', '%23'),
     }));
+    final appId = Environment().config.appId;
+    final redirectUrl = Environment().config.redirectUrl;
     final url =
         "https://oauth.zaloapp.com/v4/permission?app_id=$appId&redirect_uri=$redirectUrl&code_challenge=${pkcePair.codeChallenge}&state=$state";
     if (await canLaunch(url)) {

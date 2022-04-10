@@ -1,10 +1,20 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_cms/models/user.dart';
 import 'package:flutter_cms/pages/home.dart';
+import 'package:flutter_cms/pages/late.dart';
 import 'package:flutter_cms/pages/login.dart';
+import 'package:flutter_cms/pages/sumary.dart';
 import 'package:provider/provider.dart';
 
+import 'envs/env.dart';
+
 void main() {
+  const String environment = String.fromEnvironment(
+    'ENVIRONMENT',
+    defaultValue: Environment.dev,
+  );
+  Environment().initConfig(environment);
+
   runApp(const MyApp());
 }
 
@@ -18,9 +28,13 @@ class MyApp extends StatelessWidget {
       create: ((context) => UserModel()),
       child: CupertinoApp(
           title: 'ZStudio Checkin CMS',
-          initialRoute: "/",
+          theme: const CupertinoThemeData(
+            primaryColor: CupertinoColors.systemPink,
+          ),
+          initialRoute: "/checkin",
           routes: {
-            '/': (context) => const HomePage(),
+            '/': (context) => const HomePage(child: SumaryPage()),
+            '/checkin': (context) => const HomePage(child: LatePage()),
             '/login': (context) => const LoginPage(),
           },
           onGenerateRoute: (settings) {
@@ -35,6 +49,7 @@ class MyApp extends StatelessWidget {
                 );
               });
             }
+            return null;
           }),
     );
   }

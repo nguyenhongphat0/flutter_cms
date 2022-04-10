@@ -8,8 +8,11 @@ import 'package:http/http.dart' as http;
 import '../utils/messages.dart';
 
 class HomePage extends StatefulWidget {
+  final Widget? child;
+
   const HomePage({
     Key? key,
+    this.child,
   }) : super(key: key);
 
   @override
@@ -27,7 +30,6 @@ class _HomePageState extends State<HomePage> {
     final prefs = await SharedPreferences.getInstance();
     final accessToken = prefs.getString("accessToken");
     if (accessToken != null) {
-      print('Loading user');
       final Future<ZaloUser> userFuture = http.get(
         Uri.parse('https://graph.zalo.me/v2.0/me?fields=id%2Cname%2Cpicture'),
         headers: {'access_token': accessToken},
@@ -126,44 +128,21 @@ class _HomePageState extends State<HomePage> {
                             ],
                           );
                         } else {
-                          return CupertinoActivityIndicator();
+                          return const CupertinoActivityIndicator();
                         }
                       },
                     ),
                   ),
                   Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 4, horizontal: 16),
-                        child: CupertinoButton(
-                          color: CupertinoColors.systemBlue,
-                          padding: const EdgeInsets.all(12),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: const [
-                              Text('Điểm danh'),
-                              Icon(CupertinoIcons.table),
-                            ],
-                          ),
-                          onPressed: () {},
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 4, horizontal: 16),
-                        child: CupertinoButton(
-                          padding: const EdgeInsets.all(12),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: const [
-                              Text('Tiền phạt'),
-                              Icon(CupertinoIcons.money_dollar_circle),
-                            ],
-                          ),
-                          onPressed: () {},
-                        ),
-                      ),
+                    children: const [
+                      MenuItem(
+                          path: '/',
+                          title: 'Trang chủ',
+                          icon: CupertinoIcons.money_dollar_circle),
+                      MenuItem(
+                          path: '/checkin',
+                          title: 'Điểm danh',
+                          icon: CupertinoIcons.table),
                     ],
                   ),
                   CupertinoButton(
@@ -189,42 +168,45 @@ class _HomePageState extends State<HomePage> {
           flex: 3,
           child: Padding(
             padding: const EdgeInsets.all(12.0),
-            child: Column(
-              children: [
-                Text('Quản lý điểm danh',
-                    style:
-                        CupertinoTheme.of(context).textTheme.navTitleTextStyle),
-                CupertinoButton(
-                    child: const Text('Chọn ngày'),
-                    onPressed: () {
-                      showCupertinoModalPopup<void>(
-                          context: context,
-                          builder: (BuildContext context) => Container(
-                                height: 216,
-                                padding: const EdgeInsets.only(top: 6.0),
-                                // The Bottom margin is provided to align the popup above the system navigation bar.
-                                margin: EdgeInsets.only(
-                                  bottom:
-                                      MediaQuery.of(context).viewInsets.bottom,
-                                ),
-                                // Provide a background color for the popup.
-                                color: CupertinoColors.systemBackground
-                                    .resolveFrom(context),
-                                // Use a SafeArea widget to avoid system overlaps.
-                                child: SafeArea(
-                                  top: false,
-                                  child: CupertinoDatePicker(
-                                    // This is called when the user changes the time.
-                                    onDateTimeChanged: (DateTime newTime) {},
-                                  ),
-                                ),
-                              ));
-                    }),
-              ],
-            ),
+            child: widget.child,
           ),
         ),
       ],
     ));
+  }
+}
+
+class MenuItem extends StatelessWidget {
+  final String path;
+  final String title;
+  final IconData icon;
+  const MenuItem({
+    Key? key,
+    required this.path,
+    required this.title,
+    required this.icon,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
+      child: CupertinoButton(
+        color: ModalRoute.of(context)!.settings.name == path
+            ? CupertinoTheme.of(context).primaryColor
+            : null,
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(title),
+            Icon(icon),
+          ],
+        ),
+        onPressed: () {
+          Navigator.of(context).pushReplacementNamed(path);
+        },
+      ),
+    );
   }
 }
